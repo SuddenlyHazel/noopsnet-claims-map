@@ -1,0 +1,81 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+version = project.mod_version
+group = 'net.noopsnet'
+base { archivesName = 'noopsnet-claims-map' }
+java { toolchain.languageVersion = JavaLanguageVersion.of(21); withSourcesJar() }
+repositories { mavenCentral() }
+def fetchPinnedDependencies = tasks.register('fetchPinnedDependencies', Exec) {
+    commandLine 'python3', 'tools/fetch_dependencies.py'
+}
+sourceSets { client }
+sourceSets.client.compileClasspath += sourceSets.main.output
+sourceSets.client.runtimeClasspath += sourceSets.main.output
+configurations.clientImplementation.extendsFrom configurations.implementation
+configurations.clientRuntimeOnly.extendsFrom configurations.runtimeOnly
+neoForge {
+    enable { version = project.neo_version; disableRecompilation = true }
+    addModdingDependenciesTo sourceSets.client
+    mods { noopsnet_claims_map { sourceSet sourceSets.main; sourceSet sourceSets.client } }
+    unitTest { enable(); testedMod = mods.noopsnet_claims_map }
+    runs {
+        server { server(); programArgument '--nogui' }
+        smokeServer { server(); programArgument '--nogui'; gameDirectory = file('run/smoke'); jvmArguments.add '-Xmx2G' }
+    }
+}
+dependencies {
+    compileOnly files('.cache/dependencies/flan-1.21.1-1.12.8-neoforge.jar')
+    runtimeOnly files('.cache/dependencies/flan-1.21.1-1.12.8-neoforge.jar')
+    clientCompileOnly fileTree('.cache/dependencies') { include 'xaero*.jar' }
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.ow2.asm:asm-tree:9.8'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') { expand version: project.version }
+}
+tasks.named('jar') { from sourceSets.client.output }
+tasks.named('sourcesJar') { from sourceSets.client.allSource }
+tasks.withType(JavaCompile).configureEach { options.release = 21; options.encoding = 'UTF-8' }
+tasks.named('compileJava') { dependsOn fetchPinnedDependencies }
+tasks.named('compileClientJava') { dependsOn fetchPinnedDependencies }
+tasks.named('runSmokeServer') { standardInput = System.in }
+tasks.withType(AbstractArchiveTask).configureEach { preserveFileTimestamps = false; reproducibleFileOrder = true }
+test {
+    useJUnitPlatform()
+    // These are bounded wire/model tests; the real loader is checked separately
+    // with the isolated dedicated-server smoke, without starting a game client.
+    classpath = classpath.filter { !it.name.startsWith('junit-fml-') }
+    dependsOn tasks.named('compileClientJava')
+    inputs.files(sourceSets.client.output.classesDirs)
+    inputs.files(configurations.clientCompileClasspath)
+    doFirst {
+        systemProperty 'claimsmap.dependencies', file('.cache/dependencies').absolutePath
+        systemProperty 'claimsmap.clientClasses', sourceSets.client.output.classesDirs.singleFile.absolutePath
+    }
+}
+tasks.register('verifyModJar') {
+    dependsOn tasks.named('jar')
+    doLast {
+        new java.util.zip.ZipFile(tasks.jar.archiveFile.get().asFile).withCloseable { zip ->
+            ['META-INF/neoforge.mods.toml', 'net/noopsnet/claimsmap/NoopsClaimsMap.class',
+             'net/noopsnet/claimsmap/ClaimsSnapshotPayload.class',
+             'net/noopsnet/claimsmap/client/ClaimMapRenderer.class',
+             'net/noopsnet/claimsmap/client/MinimapClaims.class',
+             'net/noopsnet/claimsmap/client/mixin/GuiMapMixin.class',
+             'noopsnet-claims-map.mixins.json'].each {
+                if (zip.getEntry(it) == null) throw new GradleException("Missing addon entry: ${it}")
+            }
+            if (zip.entries().toList().any { it.name.startsWith('xaero/') || it.name.startsWith('io/github/flemmli97/') })
+                throw new GradleException('Third-party classes must not be bundled')
+        }
+    }
+}
+tasks.named('check') { dependsOn tasks.named('verifyModJar') }
+
+// Include the public source license and resource notices in built artifacts.
+tasks.named('jar') { from('LICENSE'); from('NOTICE.md') }

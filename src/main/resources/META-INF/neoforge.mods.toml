@@ -1,0 +1,39 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MPL-2.0 (code); see NOTICE.md for artwork"
+[[mods]]
+modId="noopsnet_claims_map"
+version="${version}"
+displayName="NoopsNet Claim Maps"
+authors="NoopsNet"
+description="Map-based chunk claiming, claim selection and explicit 3D expansion for Flan. Flan retains permissions, subclaims and protection."
+[[dependencies.noopsnet_claims_map]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.265,21.2)"
+side="BOTH"
+[[dependencies.noopsnet_claims_map]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+side="BOTH"
+[[dependencies.noopsnet_claims_map]]
+modId="flan"
+type="required"
+versionRange="[1.21.1-1.12.8-neoforge]"
+side="SERVER"
+[[dependencies.noopsnet_claims_map]]
+modId="xaeroworldmap"
+type="required"
+versionRange="[1.47.0,1.48)"
+side="CLIENT"
+ordering="AFTER"
+[[dependencies.noopsnet_claims_map]]
+modId="xaerominimap"
+type="optional"
+versionRange="[26.6.0]"
+side="CLIENT"
+ordering="AFTER"
+
+[[mixins]]
+config="noopsnet-claims-map.mixins.json"

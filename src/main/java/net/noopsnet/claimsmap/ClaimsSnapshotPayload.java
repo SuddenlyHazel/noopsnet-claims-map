@@ -2,21 +2,23 @@
 package net.noopsnet.claimsmap;
 
 import io.netty.handler.codec.DecoderException;
-import java.util.ArrayList;
-import java.util.List;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Protocol v1: a full replacement, including an empty replacement after the last deletion. */
 public record ClaimsSnapshotPayload(List<ClaimView> claims) implements CustomPacketPayload {
     public static final int MAX_CLAIMS = 512;
     public static final int MAX_STRING_LENGTH = 128;
-    public static final Type<ClaimsSnapshotPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("noopsnet_claims_map", "snapshot_v1"));
-    public static final StreamCodec<FriendlyByteBuf, ClaimsSnapshotPayload> CODEC = StreamCodec.ofMember(
-            ClaimsSnapshotPayload::encode, ClaimsSnapshotPayload::decode);
+    public static final Type<ClaimsSnapshotPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath("noopsnet_claims_map", "snapshot_v1"));
+    public static final StreamCodec<FriendlyByteBuf, ClaimsSnapshotPayload> CODEC =
+            StreamCodec.ofMember(ClaimsSnapshotPayload::encode, ClaimsSnapshotPayload::decode);
 
     public ClaimsSnapshotPayload {
         claims = List.copyOf(claims);
@@ -29,7 +31,8 @@ public record ClaimsSnapshotPayload(List<ClaimView> claims) implements CustomPac
     }
 
     private static void checkString(String value) {
-        if (value.length() > MAX_STRING_LENGTH) throw new IllegalArgumentException("Claim string too long");
+        if (value.length() > MAX_STRING_LENGTH)
+            throw new IllegalArgumentException("Claim string too long");
     }
 
     private void encode(FriendlyByteBuf buf) {
@@ -37,22 +40,38 @@ public record ClaimsSnapshotPayload(List<ClaimView> claims) implements CustomPac
         for (ClaimView claim : claims) {
             buf.writeUtf(claim.id(), MAX_STRING_LENGTH);
             buf.writeUtf(claim.dimension(), MAX_STRING_LENGTH);
-            buf.writeInt(claim.minX()); buf.writeInt(claim.minY()); buf.writeInt(claim.minZ());
-            buf.writeInt(claim.maxX()); buf.writeInt(claim.maxY()); buf.writeInt(claim.maxZ());
+            buf.writeInt(claim.minX());
+            buf.writeInt(claim.minY());
+            buf.writeInt(claim.minZ());
+            buf.writeInt(claim.maxX());
+            buf.writeInt(claim.maxY());
+            buf.writeInt(claim.maxZ());
             buf.writeUtf(claim.label(), MAX_STRING_LENGTH);
-            buf.writeBoolean(claim.admin()); buf.writeBoolean(claim.owned());
+            buf.writeBoolean(claim.admin());
+            buf.writeBoolean(claim.owned());
         }
     }
 
     private static ClaimsSnapshotPayload decode(FriendlyByteBuf buf) {
         int count = buf.readVarInt();
-        if (count < 0 || count > MAX_CLAIMS) throw new DecoderException("Invalid claim count: " + count);
+        if (count < 0 || count > MAX_CLAIMS)
+            throw new DecoderException("Invalid claim count: " + count);
         List<ClaimView> claims = new ArrayList<>(count);
         try {
             for (int i = 0; i < count; i++) {
-                claims.add(new ClaimView(buf.readUtf(MAX_STRING_LENGTH), buf.readUtf(MAX_STRING_LENGTH),
-                        buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(),
-                        buf.readUtf(MAX_STRING_LENGTH), buf.readBoolean(), buf.readBoolean()));
+                claims.add(
+                        new ClaimView(
+                                buf.readUtf(MAX_STRING_LENGTH),
+                                buf.readUtf(MAX_STRING_LENGTH),
+                                buf.readInt(),
+                                buf.readInt(),
+                                buf.readInt(),
+                                buf.readInt(),
+                                buf.readInt(),
+                                buf.readInt(),
+                                buf.readUtf(MAX_STRING_LENGTH),
+                                buf.readBoolean(),
+                                buf.readBoolean()));
             }
             return new ClaimsSnapshotPayload(claims);
         } catch (IllegalArgumentException exception) {
@@ -68,5 +87,8 @@ public record ClaimsSnapshotPayload(List<ClaimView> claims) implements CustomPac
         return value.substring(0, end);
     }
 
-    @Override public Type<ClaimsSnapshotPayload> type() { return TYPE; }
+    @Override
+    public Type<ClaimsSnapshotPayload> type() {
+        return TYPE;
+    }
 }

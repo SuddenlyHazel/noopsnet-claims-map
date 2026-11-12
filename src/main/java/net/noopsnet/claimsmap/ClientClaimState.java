@@ -10,11 +10,25 @@ public final class ClientClaimState {
 
     private ClientClaimState() {}
 
-    public static List<ClaimView> snapshot() { return claims; }
-    public static void replace(List<ClaimView> replacement) { claims = List.copyOf(replacement); }
-    public static long generation() { return generation; }
-    public static synchronized void replaceIfCurrent(List<ClaimView> replacement, long expectedGeneration) {
+    public static List<ClaimView> snapshot() {
+        return claims;
+    }
+
+    public static void replace(List<ClaimView> replacement) {
+        claims = List.copyOf(replacement);
+    }
+
+    public static long generation() {
+        return generation;
+    }
+
+    public static synchronized void replaceIfCurrent(
+            List<ClaimView> replacement, long expectedGeneration) {
         if (generation == expectedGeneration) claims = List.copyOf(replacement);
     }
-    public static synchronized void clear() { generation++; claims = List.of(); }
+
+    public static synchronized void clear() {
+        generation++;
+        claims = List.of();
+    }
 }

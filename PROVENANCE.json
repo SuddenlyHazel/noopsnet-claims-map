@@ -1,14 +1,14 @@
 {
-  "source_revision": "5e0a0f8b925cd26245225a413a52977eac1c99fd",
-  "snapshot_date": "2026-11-11",
+  "source_revision": "d6463f88e9578e94e8b4be256640902c8fca4776",
+  "snapshot_date": "2026-11-12",
   "project": "NoopsNet Claim Maps",
   "artifacts": [
     {
-      "filename": "noopsnet-claims-map-0.3.0.jar",
-      "version": "0.3.0",
+      "filename": "noopsnet-claims-map-0.3.1.jar",
+      "version": "0.3.1",
       "hashes": {
-        "sha1": "ef61caf84f6b05f62d45f79f84db56d196b68978",
-        "sha512": "a5c3d7eb00734e9ea666b1a97c1e24b489b31f4cc0ffb15748ee50824552913f4107bd23ce5fa43947d0f05c8bc551dba5ac5c4ba4a95f353273c4bba3889aaf"
+        "sha1": "aca34e22d6ed5759c58e61517a3e8c135d2278e9",
+        "sha512": "3cdc190c72def8c730cdd14c2b10c6a934d51e5909a4f901afce61289accb329abd762bf48f5a191c6bf7ba55f2bdd43492b35e243b45f43d93c3895a871ad59"
       }
     }
   ]
